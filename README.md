@@ -30,7 +30,8 @@ MoonSandbox 检查 capability 和资源
 - 工具 manifest 独立 capability 边界；
 - JSONL-compatible 审计事件；
 - 严格 JSON 配置校验：拒绝未知字段、重复 capability 和非整数预算；
-- MoonBit CLI 走查、stateful runtime 和 20 个单元测试。
+- 固定会话权限快照，每次请求生成一条保留原始身份的有效 JSONL 审计事件；
+- MoonBit CLI 走查、stateful runtime 和 26 个单元测试。
 
 ## 一个完整场景
 
