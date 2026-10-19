@@ -362,15 +362,15 @@ pub fn authorize_manifest(
 /// Serialize an audit event as one JSONL-compatible line.
 pub fn audit_event_json(event : AuditEvent) -> String {
   "{\"tool\":" +
-  event.tool.to_json().stringify() +
+  Json(event.tool).stringify() +
   ",\"capability\":" +
-  event.capability.to_json().stringify() +
+  Json(event.capability).stringify() +
   ",\"resource\":" +
-  event.resource.to_json().stringify() +
+  Json(event.resource).stringify() +
   ",\"decision\":" +
-  event.decision.to_json().stringify() +
+  Json(event.decision).stringify() +
   ",\"reason\":" +
-  event.reason.to_json().stringify() +
+  Json(event.reason).stringify() +
   "}"
 }
 
