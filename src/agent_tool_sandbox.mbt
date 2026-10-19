@@ -361,17 +361,17 @@ pub fn authorize_manifest(
 ///|
 /// Serialize an audit event as one JSONL-compatible line.
 pub fn audit_event_json(event : AuditEvent) -> String {
-  "{\"tool\":\"" +
-  escape_json(event.tool) +
-  "\",\"capability\":\"" +
-  escape_json(event.capability) +
-  "\",\"resource\":\"" +
-  escape_json(event.resource) +
-  "\",\"decision\":\"" +
-  escape_json(event.decision) +
-  "\",\"reason\":\"" +
-  escape_json(event.reason) +
-  "\"}"
+  "{\"tool\":" +
+  Json(event.tool).stringify() +
+  ",\"capability\":" +
+  Json(event.capability).stringify() +
+  ",\"resource\":" +
+  Json(event.resource).stringify() +
+  ",\"decision\":" +
+  Json(event.decision).stringify() +
+  ",\"reason\":" +
+  Json(event.reason).stringify() +
+  "}"
 }
 
 ///|
@@ -421,8 +421,15 @@ pub fn Runtime::new(
   manifest : ToolManifest,
 ) -> Result[Runtime, String] {
   match (policy.validate(), manifest.validate()) {
-    (Ok(_), Ok(_)) =>
+    (Ok(_), Ok(_)) => {
+      let policy = Policy::new(policy.rules.copy())
+      let manifest = ToolManifest::with_limits(
+        manifest.name,
+        manifest.capabilities.copy(),
+        manifest.limits,
+      )
       Ok({ policy, manifest, requests_used: 0, log: AuditLog::new(), })
+    }
     (Err(message), _) => Err("policy rejected: " + message)
     (_, Err(message)) => Err("manifest rejected: " + message)
   }
@@ -431,29 +438,25 @@ pub fn Runtime::new(
 ///|
 /// Evaluate and record one request, enforcing the manifest request budget.
 pub fn Runtime::request(self : Runtime, request : Request) -> Decision {
-  let decision = if self.requests_used >= self.manifest.limits.max_requests {
-    Deny
-  } else {
-    self.requests_used += 1
-    let (decision, event) = authorize_manifest(
-      self.policy,
-      self.manifest,
-      request,
-    )
-    self.log.append(event)
-    decision
-  }
-  if self.requests_used >= self.manifest.limits.max_requests && decision == Deny {
+  if self.requests_used >= self.manifest.limits.max_requests {
     self.log.append(
       AuditEvent::new(
-        self.manifest.name,
-        FsRead,
-        "runtime",
+        request.tool,
+        request.capability,
+        request.resource,
         Deny,
         "request budget exhausted",
       ),
     )
+    return Deny
   }
+  self.requests_used += 1
+  let (decision, event) = authorize_manifest(
+    self.policy,
+    self.manifest,
+    request,
+  )
+  self.log.append(event)
   decision
 }
 
@@ -628,15 +631,6 @@ pub fn project_policy() -> Policy {
       { capability: EnvRead, pattern: "LANG", decision: Allow, },
     ],
   }
-}
-
-///|
-/// Escape the JSON string characters used by audit records.
-fn escape_json(value : String) -> String {
-  value
-  .replace(old="\\", new="\\\\")
-  .replace(old="\"", new="\\\"")
-  .replace(old="\n", new="\\n")
 }
 
 ///|

@@ -70,6 +70,15 @@ fn main {
           ),
         )
         print_decision(decision)
+        print_decision(
+          runtime.request(
+            @sandbox.Request::new(
+              "reader",
+              @sandbox.FsRead,
+              "workspace/src/other.mbt",
+            ),
+          ),
+        )
         println(runtime.audit_jsonl())
       }
       Err(message) => println("runtime rejected: " + message)
