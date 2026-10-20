@@ -21,3 +21,18 @@ jobs:
         run: moon test --deny-warn
       - name: Build
         run: moon build --target native
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned integration runner
+        run: python -m pip install uv==0.8.17
+      - name: Install locked MCP and WASI dependencies
+        run: uv sync --frozen --project adapters/mcp_wasi --python 3.12
+      - name: Real MCP to WASI integration
+        run: adapters/mcp_wasi/.venv/bin/python -m unittest discover -s tests/integration -v
+      - name: Upload WASI execution evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-wasi-evidence
+          path: _build/mcp-wasi-evidence.json
+          if-no-files-found: error

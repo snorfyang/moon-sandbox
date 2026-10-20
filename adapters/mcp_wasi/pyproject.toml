@@ -1,0 +1,9 @@
+[project]
+name = "moonsandbox-mcp-wasi"
+version = "0.1.0"
+description = "Trusted MCP stdio adapter and Wasmtime backend for MoonSandbox"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp==1.26.0",
+    "wasmtime==49.0.0",
+]

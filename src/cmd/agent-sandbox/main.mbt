@@ -7,6 +7,36 @@ let usage =
   #|  agent-sandbox policy
   #|  agent-sandbox audit-demo
   #|  agent-sandbox runtime-demo
+  #|  agent-sandbox broker <policy-json> <manifest-json> <capability> <resource>
+
+///|
+fn broker(
+  policy_text : String,
+  manifest_text : String,
+  cap : String,
+  resource : String,
+) -> Result[String, String] {
+  let policy = match @sandbox.policy_from_json(policy_text) {
+    Ok(value) => value
+    Err(message) => return Err(message)
+  }
+  let manifest = match @sandbox.tool_manifest_from_json(manifest_text) {
+    Ok(value) => value
+    Err(message) => return Err(message)
+  }
+  let capability = match @sandbox.capability_from_string(cap) {
+    Some(value) => value
+    None => return Err("unknown capability")
+  }
+  let runtime = match @sandbox.Runtime::new(policy, manifest) {
+    Ok(value) => value
+    Err(message) => return Err(message)
+  }
+  let _ = runtime.request(
+    @sandbox.Request::new(manifest.name, capability, resource),
+  )
+  Ok(runtime.audit_jsonl())
+}
 
 ///|
 fn print_decision(decision : @sandbox.Decision) -> Unit {
@@ -25,6 +55,13 @@ fn parse_capability(value : String) -> @sandbox.Capability? {
 ///|
 fn main {
   let args = @env.args()
+  if args.length() == 6 && args[1] == "broker" {
+    match broker(args[2], args[3], args[4], args[5]) {
+      Ok(event) => println(event)
+      Err(message) => println("{\"error\":" + Json(message).stringify() + "}")
+    }
+    return
+  }
   if args.length() == 2 && args[1] == "policy" {
     println("fs.read workspace/src/** allow")
     println("fs.read workspace/test/** allow")

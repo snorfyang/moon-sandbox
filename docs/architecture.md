@@ -31,7 +31,9 @@ The three checks are intentionally separate. A policy may allow `fs.write`, but 
 
 ## Data plane
 
-The data plane is the execution backend and is not part of the current pure-MoonBit MVP. The planned backend accepts the approved capability set and starts a WASM/WASI tool with only those resources. The backend is replaceable so the same policy core can later target Wasmtime, a browser host, or a platform process adapter.
+The current reference data plane is `adapters/mcp_wasi`: a trusted Python MCP adapter and Wasmtime worker. The administrator registers a specific WASM digest and a read-only directory. After MoonBit authorization, the worker instantiates those exact bytes with one read-only WASI preopen, no inherited environment or sockets, bounded memory/fuel, and an external wall-clock timeout. It executes `guests/wasi-reader/reader.wat`, which performs actual WASI file reads.
+
+This backend supports directory-wide reads only. It does not accept arbitrary fine-grained policies, WIT components or existing native MCP servers. See [execution contract and tests](mcp-wasi.md).
 
 ## Decision lifecycle
 
@@ -42,7 +44,8 @@ manifest loaded
   -> policy match
   -> allow / deny / ask
   -> audit event
-  -> backend execution (future)
+  -> Wasmtime execution (reference file tool)
+  -> separate execution outcome
 ```
 
 ## Why this decomposition matters
@@ -57,5 +60,5 @@ The MVP is intentionally one package so the policy semantics are easy to inspect
 - `policy`: JSON/TOML loading and matching;
 - `audit`: append-only JSONL sink and redaction;
 - `runtime`: request lifecycle, limits and approvals;
-- `backend-wasi`: WIT/WASI execution adapter;
-- `adapter-mcp`: MCP stdio proxy.
+- `backend-wasi`: generalize the current reference ABI to WIT/WASI;
+- `adapter-mcp`: extend the current registered-file-tool adapter without weakening local grants.
