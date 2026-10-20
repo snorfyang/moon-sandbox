@@ -42,3 +42,8 @@ proposal*
 .DS_Store
 .vscode/
 .idea/
+
+# Adapter virtualenvs and Python bytecode
+.venv/
+__pycache__/
+*.pyc

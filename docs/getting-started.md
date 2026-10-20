@@ -1,6 +1,6 @@
 # Getting started
 
-MoonSandbox currently ships the control-plane MVP. It evaluates a tool manifest and a capability request against a default-deny policy; it does not yet launch arbitrary native commands or WASI modules.
+MoonSandbox ships a MoonBit control plane and a separately installed MCP → Wasmtime read-only file adapter. The library evaluates a tool manifest and capability request against a default-deny policy. The adapter executes a registered WASI reference guest; arbitrary native commands and existing native MCP servers are not isolated. See [the real execution walkthrough](mcp-wasi.md) for installation and end-to-end tests.
 
 ## Run the control-plane demo
 
@@ -45,3 +45,7 @@ The manifest check and policy check are separate. A tool cannot gain a capabilit
 `examples/policy.json` is the machine-readable shape planned for the next CLI milestone. The current `policy` command prints the equivalent starter policy so the MVP remains dependency-free at the command boundary.
 
 The library already accepts this format through `policy_from_json`. For tool declarations, pass the contents of [reader-manifest.json](../examples/reader-manifest.json) to `tool_manifest_from_json`. See [configuration validation](configuration.md) for the accepted fields and rejection rules. The CLI does not yet load these files.
+
+## Broker command
+
+The native `agent-sandbox broker <policy-json> <manifest-json> <capability> <resource>` command emits one JSON authorization event, or a JSON `error` object for invalid configuration. The MCP adapter passes trusted local registration data; this command itself is a decision API and never executes a tool.

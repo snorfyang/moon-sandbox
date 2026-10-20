@@ -7,7 +7,7 @@
 3. the request must be declared by the manifest and match the policy;
 4. the manifest request budget must not be exhausted.
 
-Every evaluated request is appended to the session's JSONL-compatible audit log. A future WASM/WASI backend will consume the approved capability set after this control-plane decision; the current runtime does not execute native commands.
+Every evaluated request is appended to the session's JSONL-compatible audit log. The [MCP/WASI adapter](mcp-wasi.md) invokes this control plane before running the reference WASI file tool. `Runtime` itself does not execute modules or native commands. The adapter separately enforces its session budget and logs execution outcomes.
 
 `Runtime::new` snapshots the policy rule array and the manifest capability array after validation. Changing arrays held by the caller cannot grant or revoke permissions in an existing session. Create a new runtime to install updated policy or declarations.
 

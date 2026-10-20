@@ -24,6 +24,6 @@ If `limits` is omitted, defaults apply. If supplied, all three fields are requir
 
 Fractional numbers, overflow, strings, null and nonpositive values fail parsing. Values are checked before integer conversion so they cannot be silently truncated or clamped. Integral JSON numbers such as `1.0` have integer semantics and are accepted.
 
-The current control-plane runtime enforces only `max_requests`. Timeout and output limits are validated configuration for the future execution backend; no process or module is launched by the current runtime.
+The MoonBit control-plane `Runtime` enforces only `max_requests`. It does not launch modules. The optional [MCP/WASI adapter](mcp-wasi.md) additionally enforces output bytes, worker wall-clock timeout and a persistent adapter session budget, with a smaller supported registration range documented there.
 
 See [reader-manifest.json](../examples/reader-manifest.json).
